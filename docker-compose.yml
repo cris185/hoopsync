@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hoopsync
+      POSTGRES_PASSWORD: hoopsync
+      POSTGRES_DB: hoopsync
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hoopsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://hoopsync:hoopsync@postgres:5432/hoopsync?schema=public
+      PORT: 4000
+    ports:
+      - "4000:4000"
+
+  ocr-service:
+    build: ./ocr-service
+    restart: unless-stopped
+    # Not exposed on a host port on purpose (see spec: "the OCR service
+    # should preferably not be publicly exposed directly, only the
+    # backend should communicate with it") — reachable at
+    # http://ocr-service:8000 from inside the Docker network.
+    expose:
+      - "8000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    ports:
+      - "3010:3000"
+
+volumes:
+  postgres_data:
