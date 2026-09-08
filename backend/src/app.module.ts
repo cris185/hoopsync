@@ -10,6 +10,7 @@ import { MatchesModule } from './matches/matches.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { StandingsModule } from './standings/standings.module';
 import { PlayoffsModule } from './playoffs/playoffs.module';
+import { ScoreSheetsModule } from './score-sheets/score-sheets.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -25,6 +26,7 @@ import { AppController } from './app.controller';
     StatisticsModule,
     StandingsModule,
     PlayoffsModule,
+    ScoreSheetsModule,
   ],
   controllers: [AppController],
 })

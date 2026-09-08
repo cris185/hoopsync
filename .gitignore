@@ -26,5 +26,8 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Uploaded user content (score sheet photos)
+backend/uploads/
+
 # Docker
 *.pid

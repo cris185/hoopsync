@@ -22,6 +22,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ocr-service:
+        condition: service_started
     environment:
       DATABASE_URL: postgresql://hoopsync:hoopsync@postgres:5432/hoopsync?schema=public
       PORT: 4000
@@ -29,8 +31,11 @@ services:
       # beyond local development.
       JWT_SECRET: dev-only-change-me
       JWT_EXPIRES_IN: 7d
+      OCR_SERVICE_URL: http://ocr-service:8000
     ports:
       - "4000:4000"
+    volumes:
+      - backend_uploads:/app/uploads
 
   ocr-service:
     build: ./ocr-service
@@ -54,3 +59,4 @@ services:
 
 volumes:
   postgres_data:
+  backend_uploads:
