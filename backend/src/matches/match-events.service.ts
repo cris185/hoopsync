@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SafeUser } from '../users/users.service';
 import { StatisticsService } from '../statistics/statistics.service';
 import { StandingsService } from '../standings/standings.service';
+import { PlayoffsService } from '../playoffs/playoffs.service';
 import { MatchesService } from './matches.service';
 import { CreateMatchEventDto } from './dto/create-match-event.dto';
 import { UpdateMatchEventDto } from './dto/update-match-event.dto';
@@ -15,6 +16,7 @@ export class MatchEventsService {
     private readonly matchesService: MatchesService,
     private readonly statisticsService: StatisticsService,
     private readonly standingsService: StandingsService,
+    private readonly playoffsService: PlayoffsService,
   ) {}
 
   async create(matchId: string, dto: CreateMatchEventDto, requester: SafeUser) {
@@ -66,13 +68,15 @@ export class MatchEventsService {
 
   // Every create/edit/soft-delete recalculates statistics for the
   // match, and — if the match was already FINISHED (a correction made
-  // after the fact) — the tournament's standings too, since the final
-  // score may have just changed.
+  // after the fact) — the tournament's standings, and the playoff
+  // series if this match is a series game, too, since the final score
+  // may have just changed.
   private async afterMutation(matchId: string) {
     await this.statisticsService.recalculateForMatch(matchId);
     const match = await this.prisma.match.findUniqueOrThrow({ where: { id: matchId } });
     if (match.status === MatchStatus.FINISHED) {
       await this.standingsService.recalculateForTournament(match.tournamentId);
+      await this.playoffsService.recalculateSeriesForMatch(matchId);
     }
     return match;
   }

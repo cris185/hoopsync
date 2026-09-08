@@ -3,6 +3,7 @@ import { MatchStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SafeUser } from '../users/users.service';
 import { StandingsService } from '../standings/standings.service';
+import { PlayoffsService } from '../playoffs/playoffs.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { UpdateMatchStatusDto } from './dto/update-match-status.dto';
@@ -14,6 +15,7 @@ export class MatchesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly standingsService: StandingsService,
+    private readonly playoffsService: PlayoffsService,
   ) {}
 
   async create(tournamentId: string, dto: CreateMatchDto, requester: SafeUser) {
@@ -74,10 +76,12 @@ export class MatchesService {
     const updated = await this.prisma.match.update({ where: { id }, data: { status: dto.status } });
 
     // Finishing a match (or re-finishing after a correction — see
-    // MatchEventsService) is the trigger for standings: recompute the
-    // whole tournament table from every FINISHED match.
+    // MatchEventsService) is the trigger for standings — and, when the
+    // match is a playoff game, for its series — recompute from every
+    // FINISHED match/game so a correction can never leave stale state.
     if (dto.status === MatchStatus.FINISHED) {
       await this.standingsService.recalculateForTournament(match.tournamentId);
+      await this.playoffsService.recalculateSeriesForMatch(id);
     }
     return updated;
   }

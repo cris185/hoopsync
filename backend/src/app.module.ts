@@ -9,6 +9,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
 import { MatchesModule } from './matches/matches.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { StandingsModule } from './standings/standings.module';
+import { PlayoffsModule } from './playoffs/playoffs.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { AppController } from './app.controller';
     MatchesModule,
     StatisticsModule,
     StandingsModule,
+    PlayoffsModule,
   ],
   controllers: [AppController],
 })
