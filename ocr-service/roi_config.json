@@ -1,0 +1,5 @@
+{
+  "_comment": "Normalized (0-1) regions, illustrative only. These have NOT been measured against a real printed HoopSync scoresheet — that template doesn't exist as an image asset yet. Recalibrate every value here once it does; do not trust these coordinates for real extraction.",
+  "finalScoreTeamA": { "x": 0.72, "y": 0.86, "w": 0.12, "h": 0.05 },
+  "finalScoreTeamB": { "x": 0.72, "y": 0.91, "w": 0.12, "h": 0.05 }
+}
