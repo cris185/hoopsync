@@ -25,6 +25,10 @@ services:
     environment:
       DATABASE_URL: postgresql://hoopsync:hoopsync@postgres:5432/hoopsync?schema=public
       PORT: 4000
+      # Dev-only default — override with a real secret for anything
+      # beyond local development.
+      JWT_SECRET: dev-only-change-me
+      JWT_EXPIRES_IN: 7d
     ports:
       - "4000:4000"
 
