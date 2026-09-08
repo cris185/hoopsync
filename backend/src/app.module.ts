@@ -6,6 +6,9 @@ import { AuthModule } from './auth/auth.module';
 import { TeamsModule } from './teams/teams.module';
 import { PlayersModule } from './players/players.module';
 import { TournamentsModule } from './tournaments/tournaments.module';
+import { MatchesModule } from './matches/matches.module';
+import { StatisticsModule } from './statistics/statistics.module';
+import { StandingsModule } from './standings/standings.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -17,6 +20,9 @@ import { AppController } from './app.controller';
     TeamsModule,
     PlayersModule,
     TournamentsModule,
+    MatchesModule,
+    StatisticsModule,
+    StandingsModule,
   ],
   controllers: [AppController],
 })
