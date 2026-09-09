@@ -156,6 +156,45 @@ export interface MatchStatistics {
   teams: TeamMatchStatistics[];
 }
 
+export type PlayoffSeriesStatus = "SCHEDULED" | "IN_PROGRESS" | "COMPLETED";
+
+export interface PlayoffGame {
+  id: string;
+  tournamentId: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  status: MatchStatus;
+  scheduledAt: string | null;
+  venue: string | null;
+  homeScore: number;
+  awayScore: number;
+  gameNumberInSeries: number | null;
+}
+
+export interface PlayoffSeries {
+  id: string;
+  playoffRoundId: string;
+  teamAId: string;
+  teamBId: string;
+  teamAWins: number;
+  teamBWins: number;
+  winnerTeamId: string | null;
+  status: PlayoffSeriesStatus;
+  teamA: Team;
+  teamB: Team;
+  winnerTeam: Team | null;
+  games: PlayoffGame[];
+}
+
+export interface PlayoffRound {
+  id: string;
+  tournamentId: string;
+  name: string;
+  order: number;
+  bestOf: number;
+  series: PlayoffSeries[];
+}
+
 export interface Standing {
   id: string;
   tournamentId: string;

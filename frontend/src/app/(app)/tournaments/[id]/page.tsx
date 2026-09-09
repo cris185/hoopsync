@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { StatusTag, TournamentStatusTag } from "@/components/ui/status-tag";
 import { StandingsTable } from "@/components/standings-table";
+import { PlayoffsSection } from "@/components/playoffs-section";
 
 export default function TournamentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -275,6 +276,8 @@ export default function TournamentDetailPage() {
           </form>
         )}
       </div>
+
+      <PlayoffsSection tournamentId={id} registeredTeams={tournament.tournamentTeams} canManage={canManage} />
     </div>
   );
 }
