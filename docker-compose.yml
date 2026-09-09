@@ -4,10 +4,13 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: hoopsync
-      POSTGRES_PASSWORD: hoopsync
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hoopsync}
       POSTGRES_DB: hoopsync
     ports:
-      - "5433:5432"
+      # Bound to localhost only — local dev still reaches it at
+      # localhost:5433, but a public deployment never exposes the
+      # database to the internet.
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,11 +28,12 @@ services:
       ocr-service:
         condition: service_started
     environment:
-      DATABASE_URL: postgresql://hoopsync:hoopsync@postgres:5432/hoopsync?schema=public
+      DATABASE_URL: postgresql://hoopsync:${POSTGRES_PASSWORD:-hoopsync}@postgres:5432/hoopsync?schema=public
       PORT: 4000
-      # Dev-only default — override with a real secret for anything
-      # beyond local development.
-      JWT_SECRET: dev-only-change-me
+      # Dev-only default — every real deployment must set a real
+      # JWT_SECRET (e.g. via the platform's env var settings), never
+      # commit one to the repo.
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
       JWT_EXPIRES_IN: 7d
       OCR_SERVICE_URL: http://ocr-service:8000
     ports:
@@ -51,11 +55,10 @@ services:
     build:
       context: ./frontend
       # Baked into the client bundle at build time (see Dockerfile) —
-      # localhost:4000 is correct here because it's the backend's
-      # host-mapped port, reachable from the browser on this same
-      # machine. A real deployment would build with its own public URL.
+      # defaults to the backend's host-mapped port for local dev;
+      # a real deployment must set this to its own public backend URL.
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:4000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
     restart: unless-stopped
     depends_on:
       - backend
