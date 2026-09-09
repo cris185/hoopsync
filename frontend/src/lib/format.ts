@@ -12,3 +12,15 @@ export function getInitials(name: string): string {
   const initials = parts.length > 1 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : parts[0]?.slice(0, 2);
   return (initials ?? "").toUpperCase();
 }
+
+export function formatClock(seconds: number | null): string {
+  if (seconds === null) return "--:--";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+export function formatPct(wins: number, gamesPlayed: number): string {
+  if (gamesPlayed === 0) return ".000";
+  return (wins / gamesPlayed).toFixed(3).replace(/^0/, "");
+}
