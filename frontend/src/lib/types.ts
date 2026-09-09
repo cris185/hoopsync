@@ -88,6 +88,74 @@ export interface Match {
   awayTeam: Team;
 }
 
+export type MatchEventType =
+  | "FREE_THROW_MADE"
+  | "FREE_THROW_MISSED"
+  | "TWO_POINT_MADE"
+  | "TWO_POINT_MISSED"
+  | "THREE_POINT_MADE"
+  | "THREE_POINT_MISSED"
+  | "REBOUND_OFFENSIVE"
+  | "REBOUND_DEFENSIVE"
+  | "ASSIST"
+  | "STEAL"
+  | "BLOCK"
+  | "FOUL"
+  | "SUBSTITUTION";
+
+export interface MatchEvent {
+  id: string;
+  matchId: string;
+  teamId: string;
+  playerId: string | null;
+  relatedPlayerId: string | null;
+  eventType: MatchEventType;
+  value: number | null;
+  period: number;
+  clockSeconds: number;
+  isDeleted: boolean;
+  createdById: string | null;
+  createdAt: string;
+  player?: Player | null;
+  relatedPlayer?: Player | null;
+}
+
+export interface PlayerMatchStatistics {
+  id: string;
+  matchId: string;
+  playerId: string;
+  teamId: string;
+  points: number;
+  reboundsOffensive: number;
+  reboundsDefensive: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  fouls: number;
+  freeThrowMade: number;
+  freeThrowAttempted: number;
+  twoPointMade: number;
+  twoPointAttempted: number;
+  threePointMade: number;
+  threePointAttempted: number;
+  player: Player;
+}
+
+export interface TeamMatchStatistics {
+  id: string;
+  matchId: string;
+  teamId: string;
+  points: number;
+  pointsConceded: number;
+  fouls: number;
+  team: Team;
+}
+
+export interface MatchStatistics {
+  players: PlayerMatchStatistics[];
+  teams: TeamMatchStatistics[];
+}
+
 export interface Standing {
   id: string;
   tournamentId: string;

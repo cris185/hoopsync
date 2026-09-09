@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { useApi } from "@/lib/use-api";
@@ -11,6 +12,7 @@ import { TOURNAMENT_FORMAT_LABEL } from "@/lib/format";
 import { getTeamColor } from "@/lib/team-color";
 import type { Match, Standing, Team, TournamentDetail, TournamentStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { StatusTag, TournamentStatusTag } from "@/components/ui/status-tag";
 import { StandingsTable } from "@/components/standings-table";
@@ -20,7 +22,7 @@ export default function TournamentDetailPage() {
   const { user } = useAuth();
   const { data: tournament, isLoading, error, refetch } = useApi<TournamentDetail>(`/tournaments/${id}`);
   const { data: standings } = useApi<Standing[]>(`/tournaments/${id}/standings`);
-  const { data: matches } = useApi<Match[]>(`/tournaments/${id}/matches`);
+  const { data: matches, refetch: refetchMatches } = useApi<Match[]>(`/tournaments/${id}/matches`);
   const { data: allTeams } = useApi<Team[]>("/teams");
 
   const [selectedTeamId, setSelectedTeamId] = useState("");
@@ -30,6 +32,13 @@ export default function TournamentDetailPage() {
   const [status, setStatus] = useState<TournamentStatus | "">("");
   const [statusError, setStatusError] = useState<string | null>(null);
   const [isSavingStatus, setIsSavingStatus] = useState(false);
+
+  const [homeTeamId, setHomeTeamId] = useState("");
+  const [awayTeamId, setAwayTeamId] = useState("");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [venue, setVenue] = useState("");
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [isScheduling, setIsScheduling] = useState(false);
 
   async function handleRegisterTeam(event: FormEvent) {
     event.preventDefault();
@@ -53,6 +62,33 @@ export default function TournamentDetailPage() {
   async function handleWithdrawTeam(teamId: string) {
     await apiFetch(`/tournaments/${id}/teams/${teamId}`, { method: "DELETE" });
     refetch();
+  }
+
+  async function handleScheduleMatch(event: FormEvent) {
+    event.preventDefault();
+    if (!homeTeamId || !awayTeamId || homeTeamId === awayTeamId) return;
+    setScheduleError(null);
+    setIsScheduling(true);
+    try {
+      await apiFetch(`/tournaments/${id}/matches`, {
+        method: "POST",
+        body: JSON.stringify({
+          homeTeamId,
+          awayTeamId,
+          scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+          venue: venue || undefined,
+        }),
+      });
+      setHomeTeamId("");
+      setAwayTeamId("");
+      setScheduledAt("");
+      setVenue("");
+      refetchMatches();
+    } catch (err) {
+      setScheduleError(err instanceof ApiError ? err.message : "Something went wrong");
+    } finally {
+      setIsScheduling(false);
+    }
   }
 
   async function handleUpdateStatus(event: FormEvent) {
@@ -172,9 +208,10 @@ export default function TournamentDetailPage() {
         ) : (
           <div className="flex flex-col overflow-hidden rounded-md border border-surface-border">
             {matches.map((m, i) => (
-              <div
+              <Link
                 key={m.id}
-                className="flex flex-wrap items-center gap-4 px-4 py-3"
+                href={`/matches/${m.id}`}
+                className="flex flex-wrap items-center gap-4 px-4 py-3 transition hover:bg-white/5"
                 style={i % 2 === 0 ? { background: "oklch(1 0 0 / 2%)" } : undefined}
               >
                 <span className="flex-1 truncate text-sm">
@@ -188,9 +225,54 @@ export default function TournamentDetailPage() {
                   {m.scheduledAt ? new Date(m.scheduledAt).toLocaleDateString() : "Date TBD"}
                 </span>
                 <StatusTag status={m.status} />
-              </div>
+              </Link>
             ))}
           </div>
+        )}
+        {canManage && tournament.tournamentTeams.length >= 2 && (
+          <form onSubmit={handleScheduleMatch} className="flex flex-wrap items-end gap-2 rounded-md border border-surface-border p-3.5">
+            <div className="flex min-w-40 flex-1 flex-col gap-1.5">
+              <label className="text-xs font-semibold text-text-secondary">Home Team</label>
+              <Select value={homeTeamId} onChange={(e) => setHomeTeamId(e.target.value)}>
+                <option value="">Select…</option>
+                {tournament.tournamentTeams.map((tt) => (
+                  <option key={tt.teamId} value={tt.teamId}>
+                    {tt.team.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex min-w-40 flex-1 flex-col gap-1.5">
+              <label className="text-xs font-semibold text-text-secondary">Away Team</label>
+              <Select value={awayTeamId} onChange={(e) => setAwayTeamId(e.target.value)}>
+                <option value="">Select…</option>
+                {tournament.tournamentTeams
+                  .filter((tt) => tt.teamId !== homeTeamId)
+                  .map((tt) => (
+                    <option key={tt.teamId} value={tt.teamId}>
+                      {tt.team.name}
+                    </option>
+                  ))}
+              </Select>
+            </div>
+            <div className="flex min-w-44 flex-1 flex-col gap-1.5">
+              <label className="text-xs font-semibold text-text-secondary">Scheduled At (optional)</label>
+              <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+            </div>
+            <div className="flex min-w-36 flex-1 flex-col gap-1.5">
+              <label className="text-xs font-semibold text-text-secondary">Venue (optional)</label>
+              <Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Downtown Arena" />
+            </div>
+            <Button
+              type="submit"
+              variant="secondary"
+              disabled={isScheduling || !homeTeamId || !awayTeamId || homeTeamId === awayTeamId}
+              className="h-11"
+            >
+              {isScheduling ? "Scheduling…" : "Schedule Match"}
+            </Button>
+            {scheduleError && <p className="w-full text-xs text-status-live">{scheduleError}</p>}
+          </form>
         )}
       </div>
     </div>

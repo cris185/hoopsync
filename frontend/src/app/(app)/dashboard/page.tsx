@@ -132,11 +132,12 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {liveMatches.map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    eyebrow={myTournaments.find((t) => t.id === match.tournamentId)?.name}
-                  />
+                  <Link key={match.id} href={`/matches/${match.id}`}>
+                    <MatchCard
+                      match={match}
+                      eyebrow={myTournaments.find((t) => t.id === match.tournamentId)?.name}
+                    />
+                  </Link>
                 ))}
               </div>
             </div>
