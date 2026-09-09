@@ -82,13 +82,14 @@ model Tournament {
 // ============================================================
 
 model Team {
-  id        String   @id @default(cuid())
-  name      String
-  logoUrl   String?
-  coachName String?
-  category  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  logoUrl       String?
+  coachName     String?
+  coachPhotoUrl String?
+  category      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   players          Player[]
   tournamentTeams  TournamentTeam[]
@@ -106,8 +107,10 @@ model Team {
 }
 
 enum PlayerPosition {
-  GUARD
-  FORWARD
+  POINT_GUARD
+  SHOOTING_GUARD
+  SMALL_FORWARD
+  POWER_FORWARD
   CENTER
 }
 

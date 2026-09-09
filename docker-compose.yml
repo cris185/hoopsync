@@ -27,6 +27,8 @@ services:
         condition: service_healthy
       ocr-service:
         condition: service_started
+      minio:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://hoopsync:${POSTGRES_PASSWORD:-hoopsync}@postgres:5432/hoopsync?schema=public
       PORT: 4000
@@ -36,10 +38,41 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
       JWT_EXPIRES_IN: 7d
       OCR_SERVICE_URL: http://ocr-service:8000
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-hoopsync}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-hoopsync123}
+      MINIO_BUCKET: hoopsync-media
+      # The URL the *browser* uses to load uploaded photos — different
+      # from MINIO_ENDPOINT above (which is only the backend's internal
+      # route to MinIO). A real deployment must point this at MinIO's
+      # own public URL.
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9000}
     ports:
       - "4000:4000"
     volumes:
       - backend_uploads:/app/uploads
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-hoopsync}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-hoopsync123}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      # Web console — only useful for local debugging, never routed
+      # publicly in a real deployment.
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   ocr-service:
     build: ./ocr-service
@@ -68,3 +101,4 @@ services:
 volumes:
   postgres_data:
   backend_uploads:
+  minio_data:

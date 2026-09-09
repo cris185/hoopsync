@@ -11,6 +11,7 @@ No paid AI APIs anywhere in this stack. The only expected cost is the VPS it run
 - Standings and box scores are always a full recompute from the match-event log — never hand-edited, never left stale after a correction.
 - Playoff brackets: rounds, best-of-N series, and games that link straight into the Match Center.
 - Upload a photo of a physical paper score sheet and let a self-hosted OCR pipeline (OpenCV + PaddleOCR) read it — jersey number and fuzzy name matching against the actual team roster, never trusting raw OCR text as fact. Every result is reviewed and corrected by a human before it's validated; nothing is auto-applied to the official record.
+- Optional team logo, coach photo and player photo uploads, backed by self-hosted MinIO — no third-party storage.
 
 ## Architecture
 
@@ -45,6 +46,7 @@ docker compose up -d --build
 | Frontend     | http://localhost:3010           |
 | Backend API  | http://localhost:4000           |
 | Postgres     | localhost:5433                  |
+| MinIO console| http://localhost:9001 (hoopsync / hoopsync123) |
 
 The OCR service isn't exposed on a host port on purpose — only the backend talks to it, over the internal Docker network.
 
@@ -59,8 +61,10 @@ First run: register an account (Organizer role) from the frontend, then create a
 | `POSTGRES_PASSWORD`    | Real database password (never the `hoopsync` dev default).      |
 | `JWT_SECRET`           | Real auth signing secret (never `dev-only-change-me`).          |
 | `NEXT_PUBLIC_API_URL`  | The backend's public URL, baked into the frontend at build time.|
+| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` | Real MinIO credentials (never the dev defaults). |
+| `MINIO_PUBLIC_URL`     | The URL browsers use to load uploaded photos — MinIO's own public URL, not `MINIO_ENDPOINT` (which is only the backend's internal route to it). |
 
-Postgres is bound to `127.0.0.1` only in the compose file — it's never meant to be reachable from outside the host it runs on.
+Postgres is bound to `127.0.0.1` only in the compose file — it's never meant to be reachable from outside the host it runs on. MinIO's S3 API is published because uploaded photos need to be directly loadable by the browser; its admin console is bound to `127.0.0.1` only.
 
 ## Notable design decisions
 
@@ -70,4 +74,4 @@ Postgres is bound to `127.0.0.1` only in the compose file — it's never meant t
 
 ## Tech stack
 
-Next.js 16 · TypeScript · Tailwind CSS v4 · NestJS · Prisma · PostgreSQL · Python · FastAPI · OpenCV · PaddleOCR · Docker
+Next.js 16 · TypeScript · Tailwind CSS v4 · NestJS · Prisma · PostgreSQL · Python · FastAPI · OpenCV · PaddleOCR · MinIO · Docker

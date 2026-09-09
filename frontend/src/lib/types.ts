@@ -32,17 +32,20 @@ export interface Team {
   name: string;
   logoUrl: string | null;
   coachName: string | null;
+  coachPhotoUrl: string | null;
   category: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+export type PlayerPosition = "POINT_GUARD" | "SHOOTING_GUARD" | "SMALL_FORWARD" | "POWER_FORWARD" | "CENTER";
 
 export interface Player {
   id: string;
   teamId: string;
   name: string;
   jerseyNumber: number;
-  position: "GUARD" | "FORWARD" | "CENTER" | null;
+  position: PlayerPosition | null;
   photoUrl: string | null;
   createdAt: string;
   updatedAt: string;

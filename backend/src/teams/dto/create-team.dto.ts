@@ -15,5 +15,9 @@ export class CreateTeamDto {
 
   @IsOptional()
   @IsString()
+  coachPhotoUrl?: string;
+
+  @IsOptional()
+  @IsString()
   category?: string;
 }

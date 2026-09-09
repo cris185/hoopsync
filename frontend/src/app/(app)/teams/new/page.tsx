@@ -6,12 +6,15 @@ import { apiFetch, ApiError } from "@/lib/api";
 import type { Team } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhotoUpload } from "@/components/photo-upload";
 
 export default function NewTeamPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [coachName, setCoachName] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [coachPhotoUrl, setCoachPhotoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,6 +29,8 @@ export default function NewTeamPage() {
           name,
           category: category || undefined,
           coachName: coachName || undefined,
+          logoUrl: logoUrl || undefined,
+          coachPhotoUrl: coachPhotoUrl || undefined,
         }),
       });
       router.push(`/teams/${team.id}`);
@@ -65,6 +70,10 @@ export default function NewTeamPage() {
             Coach (optional)
           </label>
           <Input id="coach" value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="Coach name" />
+        </div>
+        <div className="flex gap-6">
+          <PhotoUpload kind="team-logo" label="Team Logo" value={logoUrl} onChange={setLogoUrl} />
+          <PhotoUpload kind="coach-photo" label="Coach Photo" value={coachPhotoUrl} onChange={setCoachPhotoUrl} shape="circle" />
         </div>
         {error && <p className="text-xs text-status-live">{error}</p>}
         <Button type="submit" disabled={isSubmitting} className="mt-2 w-full justify-center">

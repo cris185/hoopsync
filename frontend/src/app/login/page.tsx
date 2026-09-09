@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Logo } from "@/components/ui/logo";
 
 export default function LoginPage() {
@@ -61,9 +62,8 @@ export default function LoginPage() {
             <label className="text-xs font-semibold text-text-secondary" htmlFor="password">
               Password
             </label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="current-password"
               required
               value={password}
