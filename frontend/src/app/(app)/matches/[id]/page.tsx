@@ -20,6 +20,7 @@ import type {
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/ui/status-tag";
+import { ScoreSheetPanel } from "@/components/score-sheet-panel";
 
 const EVENT_TILES: { type: MatchEventType; label: string }[] = [
   { type: "THREE_POINT_MADE", label: "3PT Made" },
@@ -437,6 +438,10 @@ export default function MatchCenterPage() {
           )}
         </div>
       </div>
+
+      {canScore && (
+        <ScoreSheetPanel matchId={match.id} roster={[...(homeRoster?.players ?? []), ...(awayRoster?.players ?? [])]} />
+      )}
     </div>
   );
 }

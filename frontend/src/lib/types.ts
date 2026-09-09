@@ -156,6 +156,39 @@ export interface MatchStatistics {
   teams: TeamMatchStatistics[];
 }
 
+export type ScoreSheetStatus = "PENDING" | "PROCESSING" | "PROCESSED" | "VALIDATED" | "REJECTED";
+export type OCRResolutionMethod = "EXACT_ROSTER_MATCH" | "FUZZY_ROSTER_MATCH" | "MARK_DETECTED" | "NEEDS_REVIEW";
+
+export interface OCRFieldResult {
+  id: string;
+  ocrProcessingResultId: string;
+  fieldName: string;
+  rawText: string | null;
+  confidence: number;
+  resolutionMethod: OCRResolutionMethod;
+  matchedPlayerId: string | null;
+  matchedPlayer?: Player | null;
+  wasManuallyCorrected: boolean;
+}
+
+export interface OCRProcessingResult {
+  id: string;
+  scoreSheetId: string;
+  overallConfidence: number;
+  processedAt: string;
+  fields: OCRFieldResult[];
+}
+
+export interface ScoreSheet {
+  id: string;
+  matchId: string;
+  imageUrl: string;
+  uploadedById: string;
+  status: ScoreSheetStatus;
+  uploadedAt: string;
+  processingResult: OCRProcessingResult | null;
+}
+
 export type PlayoffSeriesStatus = "SCHEDULED" | "IN_PROGRESS" | "COMPLETED";
 
 export interface PlayoffGame {
