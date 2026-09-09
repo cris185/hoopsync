@@ -8,13 +8,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MediaService, MEDIA_FOLDERS, type MediaKind } from './media.service';
+import { MediaService, type MediaKind } from './media.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+
+// score-sheet is deliberately not reachable through this general
+// endpoint — it has its own upload path (POST /matches/:id/score-sheet)
+// gated by per-match scoring permission, not just an ORGANIZER/ADMIN
+// role check, and it needs PDF handling this generic endpoint doesn't do.
+const PUBLIC_MEDIA_KINDS: MediaKind[] = ['team-logo', 'coach-photo', 'player-photo'];
 
 @Controller('media')
 export class MediaController {
@@ -43,8 +49,8 @@ export class MediaController {
     if (!file) {
       throw new BadRequestException('An image file is required');
     }
-    if (!(kind in MEDIA_FOLDERS)) {
-      throw new BadRequestException(`kind must be one of: ${Object.keys(MEDIA_FOLDERS).join(', ')}`);
+    if (!PUBLIC_MEDIA_KINDS.includes(kind as MediaKind)) {
+      throw new BadRequestException(`kind must be one of: ${PUBLIC_MEDIA_KINDS.join(', ')}`);
     }
     const url = await this.mediaService.upload(kind as MediaKind, file);
     return { url };

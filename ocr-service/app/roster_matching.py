@@ -33,8 +33,16 @@ def match_player(jersey_text: str | None, name_text: str | None, players: list[d
     secondary confirmation signal. Only falls back to fuzzy name matching
     when the number didn't resolve to exactly one player."""
     jersey_number = None
-    if jersey_text and jersey_text.strip().isdigit():
-        jersey_number = int(jersey_text.strip())
+    # isdigit() is too permissive here — it's true for glyphs like the
+    # circled-digit "①" that int() then can't parse (a real crash seen
+    # on a densely-printed official FIBA sheet). isdecimal() is the
+    # check that actually matches what int() accepts; the try/except
+    # is defense in depth against any other stray unicode int() rejects.
+    if jersey_text and jersey_text.strip().isdecimal():
+        try:
+            jersey_number = int(jersey_text.strip())
+        except ValueError:
+            jersey_number = None
 
     if jersey_number is not None:
         candidates = [p for p in players if p["jerseyNumber"] == jersey_number]
@@ -116,11 +124,11 @@ def extract_roster_candidates(regions: list[dict]) -> list[dict]:
     for row in group_into_rows(regions):
         row_sorted = sorted(row, key=_region_left_x)
         jersey_region = next(
-            (r for r in row_sorted if r["text"].strip().isdigit() and len(r["text"].strip()) <= 2),
+            (r for r in row_sorted if r["text"].strip().isdecimal() and len(r["text"].strip()) <= 2),
             None,
         )
         name_region = next(
-            (r for r in row_sorted if not r["text"].strip().isdigit() and len(r["text"].strip()) >= 3),
+            (r for r in row_sorted if not r["text"].strip().isdecimal() and len(r["text"].strip()) >= 3),
             None,
         )
         if jersey_region or name_region:

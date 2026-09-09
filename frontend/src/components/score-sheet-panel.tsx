@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Upload } from "lucide-react";
-import { API_URL, apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { OCRFieldResult, Player, ScoreSheet, ScoreSheetStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -171,11 +171,13 @@ export function ScoreSheetPanel({
       {!scoreSheet ? (
         <label className="flex cursor-pointer flex-col items-center gap-2.5 rounded-md border border-dashed border-surface-border p-8 text-center transition hover:border-accent-400">
           <Upload size={22} className="text-accent-400" />
-          <span className="text-sm font-semibold">Upload a photo of the physical score sheet</span>
-          <span className="text-xs text-text-tertiary">JPG, PNG or WebP — the OCR service will read it automatically</span>
+          <span className="text-sm font-semibold">Upload a photo or PDF of the physical score sheet</span>
+          <span className="text-xs text-text-tertiary">
+            JPG, PNG, WebP or PDF — the OCR service will read it automatically
+          </span>
           <input
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
             className="hidden"
             disabled={isUploading}
             onChange={(e) => {
@@ -189,9 +191,9 @@ export function ScoreSheetPanel({
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-4">
-            <a href={`${API_URL}${scoreSheet.imageUrl}`} target="_blank" rel="noreferrer" className="shrink-0">
+            <a href={scoreSheet.imageUrl} target="_blank" rel="noreferrer" className="shrink-0">
               <img
-                src={`${API_URL}${scoreSheet.imageUrl}`}
+                src={scoreSheet.imageUrl}
                 alt="Uploaded score sheet"
                 className="h-48 w-36 rounded-md border border-surface-border object-cover transition hover:border-accent-400"
               />
@@ -209,7 +211,7 @@ export function ScoreSheetPanel({
                     {isUploading ? "Uploading…" : "Replace Photo"}
                     <input
                       type="file"
-                      accept="image/jpeg,image/png,image/webp"
+                      accept="image/jpeg,image/png,image/webp,application/pdf"
                       className="hidden"
                       disabled={isUploading}
                       onChange={(e) => {

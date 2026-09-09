@@ -10,7 +10,7 @@ No paid AI APIs anywhere in this stack. The only expected cost is the VPS it run
 - Schedule matches and score them live from a broadcast-style Match Center: point-by-point event recording (2PT/3PT/FT, rebounds, assists, steals, blocks, fouls, substitutions), with a full correction timeline (soft-delete, never destroys the audit trail).
 - Standings and box scores are always a full recompute from the match-event log — never hand-edited, never left stale after a correction.
 - Playoff brackets: rounds, best-of-N series, and games that link straight into the Match Center.
-- Upload a photo of a physical paper score sheet and let a self-hosted OCR pipeline (OpenCV + PaddleOCR) read it — jersey number and fuzzy name matching against the actual team roster, never trusting raw OCR text as fact. Every result is reviewed and corrected by a human before it's validated; nothing is auto-applied to the official record.
+- Upload a photo (or PDF) of a physical paper score sheet and let a self-hosted OCR pipeline (OpenCV + PaddleOCR) read it — jersey number and fuzzy name matching against the actual team roster, never trusting raw OCR text as fact. A PDF's first page is rendered to an image before anything else touches it. Every result is reviewed and corrected by a human before it's validated; nothing is auto-applied to the official record.
 - Optional team logo, coach photo and player photo uploads, backed by self-hosted MinIO — no third-party storage.
 
 ## Architecture

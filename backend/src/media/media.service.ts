@@ -14,6 +14,7 @@ export const MEDIA_FOLDERS = {
   'team-logo': 'team-logos',
   'coach-photo': 'coach-photos',
   'player-photo': 'player-photos',
+  'score-sheet': 'score-sheets',
 } as const;
 
 export type MediaKind = keyof typeof MEDIA_FOLDERS;
@@ -70,5 +71,26 @@ export class MediaService implements OnModuleInit {
       'Content-Type': file.mimetype,
     });
     return `${PUBLIC_URL}/${BUCKET}/${key}`;
+  }
+
+  // Reads an object back by the public URL upload() returned — via the
+  // MinIO client's own connection (MINIO_ENDPOINT), never by fetching
+  // PUBLIC_URL server-side. PUBLIC_URL is for browsers; in local dev
+  // it's literally "localhost", which inside this container resolves
+  // to the backend itself, not MinIO, and even where it does resolve
+  // (a real deployment) it's a needless round-trip through the public
+  // internet for a same-network read.
+  async downloadByUrl(url: string): Promise<Buffer> {
+    const prefix = `${PUBLIC_URL}/${BUCKET}/`;
+    if (!url.startsWith(prefix)) {
+      throw new Error(`Not a recognized MinIO object URL: ${url}`);
+    }
+    const key = url.slice(prefix.length);
+    const stream = await this.client.getObject(BUCKET, key);
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk as Buffer);
+    }
+    return Buffer.concat(chunks);
   }
 }

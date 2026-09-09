@@ -17,7 +17,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { SafeUser } from '../users/users.service';
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+// PDFs are accepted too — the service converts the first page to a
+// PNG before anything else touches it (storage, OCR).
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 @Controller()
@@ -31,7 +33,7 @@ export class ScoreSheetsController {
       limits: { fileSize: MAX_FILE_SIZE_BYTES },
       fileFilter: (_req, file, callback) => {
         if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-          callback(new BadRequestException('Only jpg, jpeg, png or webp images are allowed'), false);
+          callback(new BadRequestException('Only jpg, jpeg, png, webp or pdf files are allowed'), false);
           return;
         }
         callback(null, true);

@@ -51,8 +51,6 @@ services:
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9000}
     ports:
       - "4000:4000"
-    volumes:
-      - backend_uploads:/app/uploads
 
   minio:
     image: minio/minio:latest
@@ -100,5 +98,4 @@ services:
 
 volumes:
   postgres_data:
-  backend_uploads:
   minio_data:

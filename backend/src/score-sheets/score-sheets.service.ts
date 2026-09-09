@@ -1,20 +1,19 @@
 import { BadGatewayException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import { extname, join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { MatchesService } from '../matches/matches.service';
+import { MediaService } from '../media/media.service';
 import { SafeUser } from '../users/users.service';
 import { UpdateOcrFieldDto } from './dto/update-ocr-field.dto';
+import { convertPdfFirstPageToPng } from './pdf-to-image';
 
 const OCR_SERVICE_URL = process.env.OCR_SERVICE_URL ?? 'http://ocr-service:8000';
-const UPLOAD_DIR = join(process.cwd(), 'uploads', 'score-sheets');
 
 @Injectable()
 export class ScoreSheetsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly matchesService: MatchesService,
+    private readonly mediaService: MediaService,
   ) {}
 
   async upload(matchId: string, file: Express.Multer.File, requester: SafeUser) {
@@ -25,7 +24,21 @@ export class ScoreSheetsService {
       throw new ConflictException('This match already has a validated score sheet');
     }
 
-    const imageUrl = await this.saveImage(file);
+    // A PDF page isn't an image the OCR service can read — normalize
+    // to PNG once here, so everything downstream (storage, OCR,
+    // reprocessing, the frontend's <img> preview) only ever deals with
+    // an image, regardless of what was actually uploaded.
+    const imageFile: Express.Multer.File =
+      file.mimetype === 'application/pdf'
+        ? {
+            ...file,
+            buffer: await convertPdfFirstPageToPng(file.buffer),
+            mimetype: 'image/png',
+            originalname: file.originalname.replace(/\.pdf$/i, '') + '.png',
+          }
+        : file;
+
+    const imageUrl = await this.mediaService.upload('score-sheet', imageFile);
     const scoreSheet = existing
       ? await this.prisma.scoreSheet.update({
           where: { matchId },
@@ -36,13 +49,17 @@ export class ScoreSheetsService {
         });
 
     await this.prisma.oCRProcessingResult.deleteMany({ where: { scoreSheetId: scoreSheet.id } });
-    return this.runOcr(scoreSheet.id, matchId, file.buffer);
+    return this.runOcr(scoreSheet.id, matchId, imageFile.buffer);
   }
 
   async reprocess(scoreSheetId: string, requester: SafeUser) {
     const scoreSheet = await this.getOrThrow(scoreSheetId);
     await this.matchesService.assertCanScore(scoreSheet.matchId, requester);
-    const buffer = await readFile(join(process.cwd(), scoreSheet.imageUrl.replace(/^\//, '')));
+    // The stored imageUrl is always an already-converted image (see
+    // upload() above), so re-fetching it needs no PDF handling — just
+    // read the bytes back from MinIO directly (not via its public URL —
+    // see downloadByUrl's own comment for why).
+    const buffer = await this.mediaService.downloadByUrl(scoreSheet.imageUrl);
     await this.prisma.oCRProcessingResult.deleteMany({ where: { scoreSheetId } });
     return this.runOcr(scoreSheetId, scoreSheet.matchId, buffer);
   }
@@ -185,12 +202,5 @@ export class ScoreSheetsService {
       throw new NotFoundException('Score sheet not found');
     }
     return scoreSheet;
-  }
-
-  private async saveImage(file: Express.Multer.File): Promise<string> {
-    await mkdir(UPLOAD_DIR, { recursive: true });
-    const filename = `${randomUUID()}${extname(file.originalname) || '.jpg'}`;
-    await writeFile(join(UPLOAD_DIR, filename), file.buffer);
-    return `/uploads/score-sheets/${filename}`;
   }
 }
