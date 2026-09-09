@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Big_Shoulders, Plus_Jakarta_Sans } from "next/font/google";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
 // Google ships "Big Shoulders Display" as an optical-size (opsz) preset
@@ -27,7 +28,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${bigShoulders.variable} ${plusJakarta.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

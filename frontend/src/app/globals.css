@@ -72,16 +72,22 @@
   --radius-lg: 10px;
 }
 
-body {
-  background: var(--bg-base);
-  color: var(--text-primary);
-}
+@layer base {
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+  }
 
-a {
-  color: var(--accent-400);
-}
-a:hover {
-  color: var(--accent-300);
+  /* In `@layer base` (not the plain stylesheet) so a component's own
+     text-color utility — e.g. a nav link that should stay
+     text-secondary until active — always wins regardless of source
+     order. This only sets the *default* for a bare <a>. */
+  a {
+    color: var(--accent-400);
+  }
+  a:hover {
+    color: var(--accent-300);
+  }
 }
 
 /* The one repeated signature shape (see the published design system):
