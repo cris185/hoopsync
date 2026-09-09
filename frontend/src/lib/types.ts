@@ -48,6 +48,10 @@ export interface Player {
   updatedAt: string;
 }
 
+export interface TeamDetail extends Team {
+  players: Player[];
+}
+
 export interface TournamentTeam {
   id: string;
   tournamentId: string;

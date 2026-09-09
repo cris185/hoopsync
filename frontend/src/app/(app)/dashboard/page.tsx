@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BarChart3, Plus, Radio, Trophy, Users } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { TOURNAMENT_FORMAT_LABEL } from "@/lib/format";
 import type { Match, Standing, Tournament, TournamentDetail } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { StatTile } from "@/components/ui/stat-tile";
@@ -163,7 +164,7 @@ export default function DashboardPage() {
                       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <span className="truncate font-display text-base font-bold">{t.name}</span>
                         <span className="truncate text-xs text-text-tertiary">
-                          {formatFormat(t.format)} · {t.tournamentTeams.length} teams
+                          {TOURNAMENT_FORMAT_LABEL[t.format]} · {t.tournamentTeams.length} teams
                           {matches.length > 0 ? ` · ${finished}/${matches.length} matches played` : ""}
                         </span>
                       </div>
@@ -197,15 +198,4 @@ export default function DashboardPage() {
       )}
     </div>
   );
-}
-
-function formatFormat(format: Tournament["format"]): string {
-  switch (format) {
-    case "ROUND_ROBIN":
-      return "Round Robin";
-    case "HOME_AWAY":
-      return "Home & Away";
-    case "SINGLE_ELIMINATION":
-      return "Single Elimination";
-  }
 }

@@ -44,8 +44,13 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     throw new ApiError(res.status, message);
   }
 
-  if (res.status === 204) {
+  // Some endpoints (several DELETEs) return 200 with an empty body
+  // rather than 204 — checking status code alone isn't reliable, so
+  // read the raw text first and only parse it if there's anything
+  // there. `res.json()` on an empty body throws a SyntaxError.
+  const text = await res.text();
+  if (!text) {
     return undefined as T;
   }
-  return res.json() as Promise<T>;
+  return JSON.parse(text) as T;
 }

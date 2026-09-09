@@ -1,4 +1,4 @@
-import type { UserRole } from "./types";
+import type { TournamentFormat, UserRole } from "./types";
 
 export const ROLE_LABEL: Record<UserRole, string> = {
   ADMIN: "Administrator",
@@ -24,3 +24,9 @@ export function formatPct(wins: number, gamesPlayed: number): string {
   if (gamesPlayed === 0) return ".000";
   return (wins / gamesPlayed).toFixed(3).replace(/^0/, "");
 }
+
+export const TOURNAMENT_FORMAT_LABEL: Record<TournamentFormat, string> = {
+  ROUND_ROBIN: "Round Robin",
+  HOME_AWAY: "Home & Away",
+  SINGLE_ELIMINATION: "Single Elimination",
+};
